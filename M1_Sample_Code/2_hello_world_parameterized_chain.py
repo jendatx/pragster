@@ -5,7 +5,7 @@
 # COMMAND ----------
 
 # Before logging this chain using the driver notebook, you need to comment out this line.
-dbutils.library.restartPython() 
+# dbutils.library.restartPython() 
 
 # COMMAND ----------
 
@@ -41,7 +41,7 @@ rag_config = rag.RagConfig("2_hello_world_config.yaml")
 # Fake model for this hello world example.
 ############
 def fake_model(input):
-    return f"Config: {rag_config.get('sample_param')}.  You asked `{input.get('user_query')}`. Conversation history: {input.get('chat_history')}"
+    return f"Config: {rag_config.get('sample_param')}.  You inputted `{input.get('user_query')}`. Conversation history: {input.get('chat_history')}"
 
 
 ############

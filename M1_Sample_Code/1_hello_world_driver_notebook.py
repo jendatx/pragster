@@ -71,15 +71,15 @@ example_input = {
     "messages": [
         {
             "role": "user",
-            "content": "Hello world!!",
+            "content": "Howdy!",
         },
         {
             "role": "assistant",
-            "content": "Hello back.",
+            "content": "Greetings.",
         },
         {
             "role": "user",
-            "content": "Hello again.",
+            "content": "It's Friday. Again.",
         }
     ]
 }
@@ -98,13 +98,33 @@ model.invoke(example_input)
 ############
 # To deploy the model, first register the chain from the MLflow Run as a Unity Catalog model.
 ############
-uc_catalog = "catalog"
-uc_schema = "schema"
-model_name = "hello_world"
-uc_model_fqdn = f"{uc_catalog}.{uc_schema}.{model_name}" 
 
+# Assuming logged_chain_info and its model_uri attribute is defined correctly elsewhere
+
+# Your specified Unity Catalog identifiers
+uc_catalog = "users"
+uc_schema = "jen_darrouzet"
+model_name = "hello_world"
+
+# Construct the fully qualified domain name (FQDN) for the model
+uc_model_fqdn = f"{uc_catalog}.{uc_schema}.{model_name}"
+
+# Print the FQDN to verify format
+print("Attempting to register model with FQDN:", uc_model_fqdn)
+
+# Explicit check for FQDN format, though your error doesn't imply this is the issue
+if len(uc_model_fqdn.split('.')) != 3:
+    raise ValueError("Model FQDN does not have the correct format 'catalog_name.schema_name.model_name'")
+
+# Set the registry URI to connect with Databricks Unity Catalog
 mlflow.set_registry_uri('databricks-uc')
-uc_registered_chain_info = mlflow.register_model(logged_chain_info.model_uri, uc_model_fqdn)
+
+# Register the model in MLflow, using the FQDN and the URI from a logged model
+try:
+    uc_registered_chain_info = mlflow.register_model(model_uri=logged_chain_info.model_uri, name=uc_model_fqdn)
+    print("Model registered successfully.")
+except Exception as e:
+    print("Failed to register model:", str(e))
 
 # COMMAND ----------
 
