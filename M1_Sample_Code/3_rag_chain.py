@@ -9,7 +9,7 @@
 # COMMAND ----------
 
 # Before logging this chain using the driver notebook, you need to comment out this line.
-dbutils.library.restartPython() 
+# dbutils.library.restartPython() 
 
 # COMMAND ----------
 
@@ -131,7 +131,7 @@ model_input_sample = {
     "messages": [
         {
             "role": "user",
-            "content": "What is ARES?",
+            "content": "What is Hightouch?",
         }
     ]
 }

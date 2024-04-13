@@ -76,7 +76,7 @@ example_input = {
     "messages": [
         {
             "role": "user",
-            "content": "Hello.",
+            "content": "Yo",
         }
     ]
 }
@@ -103,8 +103,8 @@ client = mlflow.tracking.MlflowClient()
 
 # This JSON structure `{"sample_param": "do this thing"}` mirrors the keys in the 2_hello_world_config.yaml file
 configs_to_test = [
-    {"name": "config_1", "config": {"sample_param": "do this thing"}},
-    {"name": "config_2", "config": {"sample_param": "do a different thing"}},
+    {"name": "config_1", "config": {"sample_param": "do this funky thing yo"}},
+    {"name": "config_2", "config": {"sample_param": "do that otter thing"}},
 ]
 
 # Log each configuration to an MLflow Run

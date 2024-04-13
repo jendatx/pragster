@@ -79,21 +79,22 @@ if dbr_majorversion >= 14:
 # COMMAND ----------
 
 # DBTITLE 1,Databricks Vector Search Configuration
-# Get Vector Search Endpoints
-vector_search_endpoints_in_workspace = [item.name for item in w.vector_search_endpoints.list_endpoints() if item.endpoint_status.state == EndpointStatusState.ONLINE]
-if len(vector_search_endpoints_in_workspace) == 0:
-    raise Exception("No Vector Search Endpoints are online in this workspace.  Please follow the instructions here to create a Vector Search endpoint: https://docs.databricks.com/en/generative-ai/create-query-vector-search.html#create-a-vector-search-endpoint")
+# # Get Vector Search Endpoints
+# vector_search_endpoints_in_workspace = [item.name for item in w.vector_search_endpoints.list_endpoints() if item.endpoint_status.state == EndpointStatusState.ONLINE]
+# if len(vector_search_endpoints_in_workspace) == 0:
+#     raise Exception("No Vector Search Endpoints are online in this workspace.  Please follow the instructions here to create a Vector Search endpoint: https://docs.databricks.com/en/generative-ai/create-query-vector-search.html#create-a-vector-search-endpoint")
 
-# Create parameter
-dbutils.widgets.dropdown(
-    "vector_search_endpoint_name",
-    defaultValue="",
-    choices=vector_search_endpoints_in_workspace+[""],
-    label="#1 Select VS endpoint",
-)
+# # Create parameter
+# dbutils.widgets.dropdown(
+#     "vector_search_endpoint_name",
+#     defaultValue="",
+#     choices=vector_search_endpoints_in_workspace+[""],
+#     label="#1 Select VS endpoint",
+# )
 
-# Set local variable for use later
-vector_search_endpoint_name = dbutils.widgets.get("vector_search_endpoint_name")
+# # Set local variable for use later
+# vector_search_endpoint_name = dbutils.widgets.get("vector_search_endpoint_name")
+vector_search_endpoint_name = "one-env-shared-endpoint-5"
 
 # Validation
 if vector_search_endpoint_name == '' or vector_search_endpoint_name is None:
@@ -101,39 +102,41 @@ if vector_search_endpoint_name == '' or vector_search_endpoint_name is None:
 else:
     print(f"Using `{vector_search_endpoint_name}` as the Vector Search endpoint.")
 
-# Get UC Catalog names
-uc_catalogs = [row.catalog for row in spark.sql("SHOW CATALOGS").collect()]
-dbutils.widgets.dropdown(
-    "uc_catalog_name",
-    defaultValue="",
-    choices=uc_catalogs + [""],
-    label="#2 Select UC Catalog",
-)
+# # Get UC Catalog names
+# uc_catalogs = [row.catalog for row in spark.sql("SHOW CATALOGS").collect()]
+# dbutils.widgets.dropdown(
+#     "uc_catalog_name",
+#     defaultValue="",
+#     choices=uc_catalogs + [""],
+#     label="#2 Select UC Catalog",
+# )
 
-uc_catalog_name = dbutils.widgets.get("uc_catalog_name")
+# uc_catalog_name = dbutils.widgets.get("uc_catalog_name")
+uc_catalog_name = "jendarra_cat"
 
-# Get UC Schemas within the selected catalog
-if uc_catalog_name != "" and uc_catalog_name is not None:
-    spark.sql(f"USE CATALOG `{uc_catalog_name}`")
+# # Get UC Schemas within the selected catalog
+# if uc_catalog_name != "" and uc_catalog_name is not None:
+#     spark.sql(f"USE CATALOG `{uc_catalog_name}`")
 
-    uc_schemas = [row.databaseName for row in spark.sql(f"SHOW SCHEMAS").collect()]
-    uc_schemas = [schema for schema in uc_schemas if schema != "__databricks_internal"]
+#     uc_schemas = [row.databaseName for row in spark.sql(f"SHOW SCHEMAS").collect()]
+#     uc_schemas = [schema for schema in uc_schemas if schema != "__databricks_internal"]
 
-    dbutils.widgets.dropdown(
-        "uc_schema_name",
-        defaultValue="",
-        choices=[""] + uc_schemas,
-        label="#3 Select UC Schema",
-    )
-else:
-    dbutils.widgets.dropdown(
-        "uc_schema_name",
-        defaultValue="",
-        choices=[""],
-        label="#3 Select UC Schema",
-    )
+#     dbutils.widgets.dropdown(
+#         "uc_schema_name",
+#         defaultValue="",
+#         choices=[""] + uc_schemas,
+#         label="#3 Select UC Schema",
+#     )
+# else:
+#     dbutils.widgets.dropdown(
+#         "uc_schema_name",
+#         defaultValue="",
+#         choices=[""],
+#         label="#3 Select UC Schema",
+#     )
 
-uc_schema_name = dbutils.widgets.get("uc_schema_name")
+# uc_schema_name = dbutils.widgets.get("uc_schema_name")
+uc_schema_name = "pragster"
 
 # Get UC Volumes within the selected catalog/schema
 if uc_schema_name != "" and uc_schema_name is not None:
@@ -184,8 +187,10 @@ else:
 
 # DBTITLE 1,Data Processing Workflow Manager
 # Force this cell to re-run when these values are changed in the Notebook widgets
-uc_catalog_name = dbutils.widgets.get("uc_catalog_name")
-uc_schema_name = dbutils.widgets.get("uc_schema_name")
+# uc_catalog_name = dbutils.widgets.get("uc_catalog_name")
+uc_catalog_name = "jendarra_cat"
+# uc_schema_name = dbutils.widgets.get("uc_schema_name")
+uc_schema_name = "pragster"
 volume_raw_name = dbutils.widgets.get("source_uc_volume")
 
 # Defaults
@@ -395,6 +400,64 @@ if bronze_df.count() == 0:
 # MAGIC ## Silver: Parse the PDF files into text
 # MAGIC
 # MAGIC If you want to change the parsing library or adjust it's settings, modify the contents of the `parse_pdf` UDF.
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC # TODO
+# MAGIC It appears the below code will require a single user cluster, in order to use a pyspark UDF
+# MAGIC
+# MAGIC [UDF_PYSPARK_UNSUPPORTED_TYPE] PySpark UDF parse_pdf(content#690)#683 (SQL_ARROW_BATCHED_UDF) is not supported on clusters in Shared access mode. SQLSTATE: 0A000
+# MAGIC File <command-2668253031914479>, line 35
+# MAGIC      32 df_parsed = bronze_df.withColumn("parsed_output", parse_pdf("content")).drop("content")
+# MAGIC      34 # Check and warn on any errors
+# MAGIC ---> 35 num_errors = df_parsed.filter(func.col("parsed_output.status") != "SUCCESS").count()
+# MAGIC      36 if num_errors > 0:
+# MAGIC      37     warning.warn(f"{num_errors} documents had parse errors.  Please review.")
+# MAGIC File /databricks/spark/python/pyspark/sql/connect/dataframe.py:257, in DataFrame.count(self)
+# MAGIC     256 def count(self) -> int:
+# MAGIC --> 257     table, _ = self.agg(F._invoke_function("count", F.lit(1)))._to_table()
+# MAGIC     258     return table[0][0].as_py()
+# MAGIC File /databricks/spark/python/pyspark/sql/connect/dataframe.py:1824, in DataFrame._to_table(self)
+# MAGIC    1822 def _to_table(self) -> Tuple["pa.Table", Optional[StructType]]:
+# MAGIC    1823     query = self._plan.to_proto(self._session.client)
+# MAGIC -> 1824     table, schema = self._session.client.to_table(query, self._plan.observations)
+# MAGIC    1825     assert table is not None
+# MAGIC    1826     return (table, schema)
+# MAGIC File /databricks/spark/python/pyspark/sql/connect/client/core.py:934, in SparkConnectClient.to_table(self, plan, observations)
+# MAGIC     932 req = self._execute_plan_request_with_metadata()
+# MAGIC     933 req.plan.CopyFrom(plan)
+# MAGIC --> 934 table, schema, _, _, _ = self._execute_and_fetch(req, observations)
+# MAGIC     935 assert table is not None
+# MAGIC     936 return table, schema
+# MAGIC File /databricks/spark/python/pyspark/sql/connect/client/core.py:1525, in SparkConnectClient._execute_and_fetch(self, req, observations, self_destruct)
+# MAGIC    1522 schema: Optional[StructType] = None
+# MAGIC    1523 properties: Dict[str, Any] = {}
+# MAGIC -> 1525 for response in self._execute_and_fetch_as_iterator(req, observations):
+# MAGIC    1526     if isinstance(response, StructType):
+# MAGIC    1527         schema = response
+# MAGIC File /databricks/spark/python/pyspark/sql/connect/client/core.py:1503, in SparkConnectClient._execute_and_fetch_as_iterator(self, req, observations)
+# MAGIC    1501                     yield from handle_response(b)
+# MAGIC    1502 except Exception as error:
+# MAGIC -> 1503     self._handle_error(error)
+# MAGIC File /databricks/spark/python/pyspark/sql/connect/client/core.py:1809, in SparkConnectClient._handle_error(self, error)
+# MAGIC    1807 self.thread_local.inside_error_handling = True
+# MAGIC    1808 if isinstance(error, grpc.RpcError):
+# MAGIC -> 1809     self._handle_rpc_error(error)
+# MAGIC    1810 elif isinstance(error, ValueError):
+# MAGIC    1811     if "Cannot invoke RPC" in str(error) and "closed" in str(error):
+# MAGIC File /databricks/spark/python/pyspark/sql/connect/client/core.py:1884, in SparkConnectClient._handle_rpc_error(self, rpc_error)
+# MAGIC    1881             info = error_details_pb2.ErrorInfo()
+# MAGIC    1882             d.Unpack(info)
+# MAGIC -> 1884             raise convert_exception(
+# MAGIC    1885                 info,
+# MAGIC    1886                 status.message,
+# MAGIC    1887                 self._fetch_enriched_error(info),
+# MAGIC    1888                 self._display_server_stack_trace(),
+# MAGIC    1889             ) from None
+# MAGIC    1891     raise SparkConnectGrpcException(status.message) from None
+# MAGIC    1892 else:
+# MAGIC
 
 # COMMAND ----------
 
